@@ -8,13 +8,31 @@ from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
-    )
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
-    return db_obj
+    try:
+        db_obj = User.model_validate(
+            user_create,
+            update={"hashed_password": get_password_hash(user_create.password)},
+        )
+        session.add(db_obj)
+        session.commit()
+        session.refresh(db_obj)
+        return db_obj
+    except Exception:
+        session.rollback()
+        from sqlmodel import SQLModel
+
+        import app.models  # noqa
+        from app.core.db import engine
+
+        SQLModel.metadata.create_all(engine)
+        db_obj = User.model_validate(
+            user_create,
+            update={"hashed_password": get_password_hash(user_create.password)},
+        )
+        session.add(db_obj)
+        session.commit()
+        session.refresh(db_obj)
+        return db_obj
 
 
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
@@ -32,9 +50,21 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
 
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
-    statement = select(User).where(User.email == email)
-    session_user = session.exec(statement).first()
-    return session_user
+    try:
+        statement = select(User).where(User.email == email)
+        session_user = session.exec(statement).first()
+        return session_user
+    except Exception:
+        session.rollback()
+        from sqlmodel import SQLModel
+
+        import app.models  # noqa
+        from app.core.db import engine
+
+        SQLModel.metadata.create_all(engine)
+        statement = select(User).where(User.email == email)
+        session_user = session.exec(statement).first()
+        return session_user
 
 
 # Dummy hash to use for timing attack prevention when user is not found
