@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -17,12 +18,21 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    try:
-        SQLModel.metadata.create_all(engine)
-        with Session(engine) as session:
-            init_db(session)
-    except Exception as e:
-        logger.warning(f"Database auto-initialization notice: {e}")
+    for attempt in range(1, 6):
+        try:
+            SQLModel.metadata.create_all(engine)
+            with Session(engine) as session:
+                init_db(session)
+            logger.info(
+                "Database tables and initial data successfully verified/created."
+            )
+            break
+        except Exception as e:
+            logger.warning(f"Database connection attempt {attempt}/5 failed: {e}")
+            if attempt < 5:
+                time.sleep(2)
+            else:
+                logger.error("Failed to initialize database tables after 5 attempts.")
     yield
 
 
