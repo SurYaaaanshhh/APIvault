@@ -1,0 +1,58 @@
+services:
+  # Backend FastAPI Web Service
+  - type: web
+    name: apivault-backend
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PROJECT_NAME
+        value: APIvault
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FIRST_SUPERUSER
+        value: admin@example.com
+      - key: FIRST_SUPERUSER_PASSWORD
+        generateValue: true
+      - key: POSTGRES_SERVER
+        fromDatabase:
+          name: apivault-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: apivault-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: apivault-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: apivault-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: apivault-db
+          property: password
+      - key: BACKEND_CORS_ORIGINS
+        value: "*"
+
+  # Frontend Static Site
+  - type: web
+    name: apivault-frontend
+    runtime: static
+    buildCommand: "cd frontend && bun install && bun run build"
+    staticPublishPath: "./frontend/dist"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  # PostgreSQL Database
+  - name: apivault-db
+    databaseName: app
+    user: postgres
+    plan: free
