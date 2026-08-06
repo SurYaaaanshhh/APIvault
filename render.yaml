@@ -51,6 +51,12 @@ services:
     runtime: static
     buildCommand: "cd frontend && bun install && bun run build"
     staticPublishPath: "./frontend/dist"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: apivault-backend
+          property: url
     routes:
       - type: rewrite
         source: /*
