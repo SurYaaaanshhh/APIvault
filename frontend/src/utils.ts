@@ -10,7 +10,13 @@ function extractErrorMessage(err: ApiError): string {
   if (Array.isArray(errDetail) && errDetail.length > 0) {
     return errDetail[0].msg
   }
-  return errDetail || "Something went wrong."
+  if (typeof errDetail === "string") {
+    if (errDetail.includes("sqlalche.me") || errDetail.includes("psycopg")) {
+      return "A database error occurred. Please try again."
+    }
+    return errDetail
+  }
+  return "Something went wrong."
 }
 
 export const handleError = function (

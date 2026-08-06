@@ -162,11 +162,14 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         import traceback
 
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while creating the user account.",
+        )
 
 
 @router.get("/{user_id}", response_model=UserPublic)
