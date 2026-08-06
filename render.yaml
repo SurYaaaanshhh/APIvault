@@ -6,6 +6,8 @@ services:
     dockerContext: .
     dockerfilePath: ./backend/Dockerfile
     envVars:
+      - key: PORT
+        value: "8000"
       - key: ENVIRONMENT
         value: production
       - key: PROJECT_NAME
