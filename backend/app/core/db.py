@@ -4,7 +4,23 @@ from app import crud
 from app.core.config import settings
 from app.models import User, UserCreate
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+
+def _create_db_engine():
+    db_url = str(settings.SQLALCHEMY_DATABASE_URI)
+    try:
+        eng = create_engine(db_url)
+        with eng.connect():
+            pass
+        return eng
+    except Exception:
+        # Fallback to local SQLite database if PostgreSQL server is unreachable
+        return create_engine(
+            "sqlite:///./local_apivault.db",
+            connect_args={"check_same_thread": False},
+        )
+
+
+engine = _create_db_engine()
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
