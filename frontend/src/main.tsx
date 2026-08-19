@@ -15,16 +15,24 @@ import { routeTree } from "./routeTree.gen"
 
 const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL
-  if (!envUrl) {
-    if (import.meta.env.PROD) {
-      return "https://apivault-backend.onrender.com"
+  if (envUrl && envUrl.trim() !== "") {
+    if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
+      return envUrl
     }
-    return ""
+    return `https://${envUrl}`
   }
-  if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
-    return envUrl
+
+  const hostname = typeof window !== "undefined" ? window.location.hostname : ""
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".lhr.life") ||
+    hostname.endsWith(".loca.lt")
+  ) {
+    return "http://localhost:8000"
   }
-  return `https://${envUrl}`
+
+  return ""
 }
 
 OpenAPI.BASE = getApiBaseUrl()
