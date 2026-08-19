@@ -26,10 +26,7 @@ import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z.object({
   username: z.email(),
-  password: z
-    .string()
-    .min(1, { message: "Password is required" })
-    .min(8, { message: "Password must be at least 8 characters" }),
+  password: z.string().min(1, { message: "Password is required" }),
 }) satisfies z.ZodType<AccessToken>
 
 type FormData = z.infer<typeof formSchema>
@@ -54,7 +51,6 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { loginMutation } = useAuth()
-  const [debugError, setDebugError] = useState<string | null>(null)
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -66,39 +62,33 @@ function Login() {
   })
 
   const onSubmit = (data: FormData) => {
-    setDebugError(null)
     if (loginMutation.isPending) return
-    loginMutation.mutate(data, {
-      onError: (err: any) => {
-        const msg = err?.body?.detail || err?.message || JSON.stringify(err)
-        setDebugError(typeof msg === "string" ? msg : JSON.stringify(msg))
-      },
-    })
+    loginMutation.mutate(data)
   }
 
+  const errorDetail = loginMutation.isError
+    ? (loginMutation.error as any)?.body?.detail ||
+      (loginMutation.error as any)?.detail ||
+      loginMutation.error?.message ||
+      "Incorrect email or password"
+    : null
+
   const handleDemoLogin = () => {
-    setDebugError(null)
     form.setValue("username", "demo@apivault.com")
     form.setValue("password", "password123")
-    loginMutation.mutate(
-      {
-        username: "demo@apivault.com",
-        password: "password123",
-      },
-      {
-        onError: (err: any) => {
-          const msg = err?.body?.detail || err?.message || JSON.stringify(err)
-          setDebugError(typeof msg === "string" ? msg : JSON.stringify(msg))
-        },
-      },
-    )
+    loginMutation.mutate({
+      username: "demo@apivault.com",
+      password: "password123",
+    })
   }
 
   return (
     <AuthLayout>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(onSubmit, (errors) =>
+            console.log("FORM VALIDATION ERRORS:", JSON.stringify(errors)),
+          )}
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
@@ -106,9 +96,14 @@ function Login() {
           </div>
 
           <div className="grid gap-4">
-            {debugError && (
-              <div className="p-3 text-xs text-red-400 bg-red-950/40 border border-red-500/30 rounded-md font-mono break-all text-center">
-                <strong>Diagnostic Error:</strong> {debugError}
+            {errorDetail && (
+              <div
+                data-testid="login-error-message"
+                className="text-sm font-medium text-destructive text-center"
+              >
+                {typeof errorDetail === "string"
+                  ? errorDetail
+                  : "Incorrect email or password"}
               </div>
             )}
 

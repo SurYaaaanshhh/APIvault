@@ -60,13 +60,16 @@ test("Log in with invalid email", async ({ page }) => {
 })
 
 test("Log in with invalid password", async ({ page }) => {
+  page.on("console", (msg) => console.log("BROWSER LOG:", msg.text()))
   const password = randomPassword()
 
   await page.goto("/login")
   await fillForm(page, firstSuperuser, password)
   await page.getByRole("button", { name: "Log In" }).click()
 
-  await expect(page.getByText("Incorrect email or password")).toBeVisible()
+  await expect(
+    page.getByText("Incorrect email or password").first(),
+  ).toBeVisible()
 })
 
 test("Successful log out", async ({ page }) => {

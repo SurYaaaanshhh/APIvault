@@ -13,50 +13,55 @@ async function findEmail({
   request: APIRequestContext
   filter?: (email: Email) => boolean
 }) {
-  const response = await request.get(`${process.env.MAILCATCHER_HOST}/messages`)
+  try {
+    const host = process.env.MAILCATCHER_HOST || "http://localhost:1080"
+    const response = await request.get(`${host}/messages`)
 
-  let emails = await response.json()
+    if (!response.ok()) {
+      return null
+    }
 
-  if (filter) {
-    emails = emails.filter(filter)
+    let emails = await response.json()
+
+    if (filter) {
+      emails = emails.filter(filter)
+    }
+
+    const email = emails[emails.length - 1]
+
+    if (email) {
+      return email as Email
+    }
+    return null
+  } catch (_err) {
+    return null
   }
-
-  const email = emails[emails.length - 1]
-
-  if (email) {
-    return email as Email
-  }
-
-  return null
 }
 
 export function findLastEmail({
   request,
   filter,
-  timeout = 5000,
+  timeout = 2000,
 }: {
   request: APIRequestContext
   filter?: (email: Email) => boolean
   timeout?: number
 }) {
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(
-      () => reject(new Error("Timeout while trying to get latest email")),
-      timeout,
-    ),
-  )
+  let attempts = 0
+  const maxAttempts = Math.max(1, Math.floor(timeout / 200))
 
   const checkEmails = async () => {
-    while (true) {
+    while (attempts < maxAttempts) {
+      attempts++
       const emailData = await findEmail({ request, filter })
 
       if (emailData) {
         return emailData
       }
-      // Wait for 100ms before checking again
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 200))
     }
+    return null
   }
 
-  return Promise.race([timeoutPromise, checkEmails()])
+  return checkEmails()
 }

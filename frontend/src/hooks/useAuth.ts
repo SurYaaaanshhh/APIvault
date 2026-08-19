@@ -30,6 +30,13 @@ const useAuth = () => {
         return await UsersService.readUserMe()
       } catch (_err) {
         localStorage.removeItem("access_token")
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/login" &&
+          window.location.pathname !== "/signup"
+        ) {
+          window.location.href = "/login"
+        }
         return null
       }
     },
@@ -50,22 +57,11 @@ const useAuth = () => {
   })
 
   const login = async (data: AccessToken) => {
-    let lastErr: unknown
-    for (let i = 0; i < 3; i++) {
-      try {
-        const response = await LoginService.loginAccessToken({
-          formData: data,
-        })
-        localStorage.setItem("access_token", response.access_token)
-        return response
-      } catch (err) {
-        lastErr = err
-        if (i < 2) {
-          await new Promise((res) => setTimeout(res, 2000))
-        }
-      }
-    }
-    throw lastErr
+    const response = await LoginService.loginAccessToken({
+      formData: data,
+    })
+    localStorage.setItem("access_token", response.access_token)
+    return response
   }
 
   const loginMutation = useMutation({

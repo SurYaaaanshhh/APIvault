@@ -42,9 +42,14 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
-        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
-        ]
+        origins = [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS]
+        if self.FRONTEND_HOST:
+            fh = self.FRONTEND_HOST.rstrip("/")
+            origins.append(fh)
+            if not fh.startswith("http://") and not fh.startswith("https://"):
+                origins.append(f"https://{fh}")
+                origins.append(f"http://{fh}")
+        return origins
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None

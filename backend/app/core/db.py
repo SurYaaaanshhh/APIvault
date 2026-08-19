@@ -8,6 +8,8 @@ from app.models import User, UserCreate
 
 def _create_db_engine() -> Engine:
     db_url = str(settings.SQLALCHEMY_DATABASE_URI)
+    if settings.ENVIRONMENT != "local":
+        return create_engine(db_url)
     try:
         eng = create_engine(db_url)
         with eng.connect():

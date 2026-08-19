@@ -67,8 +67,13 @@ const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     },
     mutations: {
-      retry: 3,
-      retryDelay: 3000,
+      retry: (failureCount, error: any) => {
+        if (error?.status && error.status >= 400 && error.status < 500) {
+          return false
+        }
+        return failureCount < 2
+      },
+      retryDelay: 1000,
     },
   },
   queryCache: new QueryCache({

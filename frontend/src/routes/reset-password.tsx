@@ -26,7 +26,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const searchSchema = z.object({
-  token: z.string().catch(""),
+  token: z.string().optional().default(""),
 })
 
 const formSchema = z
@@ -50,9 +50,6 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPassword,
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
-    if (isLoggedIn()) {
-      throw redirect({ to: "/" })
-    }
     if (!search.token) {
       throw redirect({ to: "/login" })
     }
@@ -67,7 +64,8 @@ export const Route = createFileRoute("/reset-password")({
 })
 
 function ResetPassword() {
-  const { token } = Route.useSearch()
+  const search = Route.useSearch()
+  const token = search?.token || ""
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
 
@@ -96,6 +94,13 @@ function ResetPassword() {
     mutation.mutate({ new_password: data.new_password, token })
   }
 
+  const errorDetail = mutation.isError
+    ? (mutation.error as any)?.body?.detail ||
+      (mutation.error as any)?.detail ||
+      mutation.error?.message ||
+      "Invalid token"
+    : null
+
   return (
     <AuthLayout>
       <Form {...form}>
@@ -108,6 +113,16 @@ function ResetPassword() {
           </div>
 
           <div className="grid gap-4">
+            {errorDetail && (
+              <div
+                data-testid="reset-error-message"
+                className="text-sm font-medium text-destructive text-center"
+              >
+                {typeof errorDetail === "string"
+                  ? errorDetail
+                  : "Invalid token"}
+              </div>
+            )}
             <FormField
               control={form.control}
               name="new_password"
