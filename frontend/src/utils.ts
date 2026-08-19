@@ -1,17 +1,19 @@
 import { AxiosError } from "axios"
 import type { ApiError } from "./client"
 
-function extractErrorMessage(err: ApiError): string {
+function extractErrorMessage(err: any): string {
+  if (!err) return "An unexpected error occurred."
+
   if (err instanceof AxiosError) {
     if (err.message === "Network Error") {
-      return "Network Error: Server is waking up (Render free tier cold start). Please wait ~30 seconds and try again."
+      return "Network Error: Server is waking up (Render cold start). Please wait ~30 seconds and try again."
     }
     return err.message
   }
 
-  const errDetail = (err.body as any)?.detail
+  const errDetail = err.body?.detail ?? err.detail ?? err.message
   if (Array.isArray(errDetail) && errDetail.length > 0) {
-    return errDetail[0].msg
+    return errDetail[0]?.msg || String(errDetail[0]) || "Invalid input."
   }
   if (typeof errDetail === "string") {
     if (errDetail.includes("sqlalche.me") || errDetail.includes("psycopg")) {
@@ -19,7 +21,11 @@ function extractErrorMessage(err: ApiError): string {
     }
     return errDetail
   }
-  return "Something went wrong."
+  if (err.message && typeof err.message === "string") {
+    return err.message
+  }
+
+  return "Please check your email and password and try again."
 }
 
 export const handleError = function (
