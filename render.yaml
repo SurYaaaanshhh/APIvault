@@ -45,10 +45,16 @@ services:
           property: password
       - key: BACKEND_CORS_ORIGINS
         value: "*"
+      - key: FRONTEND_HOST
+        fromService:
+          type: web
+          name: apivault-frontend
+          property: host
 
   # Frontend Static Site
   - type: web
     name: apivault-frontend
+    plan: free
     runtime: static
     buildCommand: "cd frontend && bun install && bun run build"
     staticPublishPath: "./frontend/dist"
