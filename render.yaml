@@ -2,6 +2,7 @@ services:
   # Backend FastAPI Web Service
   - type: web
     name: apivault-backend
+    plan: free
     runtime: docker
     dockerContext: .
     dockerfilePath: ./backend/Dockerfile
