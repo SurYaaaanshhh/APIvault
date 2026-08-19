@@ -50,10 +50,22 @@ const useAuth = () => {
   })
 
   const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      formData: data,
-    })
-    localStorage.setItem("access_token", response.access_token)
+    let lastErr: unknown
+    for (let i = 0; i < 3; i++) {
+      try {
+        const response = await LoginService.loginAccessToken({
+          formData: data,
+        })
+        localStorage.setItem("access_token", response.access_token)
+        return response
+      } catch (err) {
+        lastErr = err
+        if (i < 2) {
+          await new Promise((res) => setTimeout(res, 2000))
+        }
+      }
+    }
+    throw lastErr
   }
 
   const loginMutation = useMutation({
