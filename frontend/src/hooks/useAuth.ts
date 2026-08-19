@@ -25,8 +25,16 @@ const useAuth = () => {
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
+    queryFn: async () => {
+      try {
+        return await UsersService.readUserMe()
+      } catch (_err) {
+        localStorage.removeItem("access_token")
+        return null
+      }
+    },
     enabled: isLoggedIn(),
+    retry: false,
   })
 
   const signUpMutation = useMutation({
