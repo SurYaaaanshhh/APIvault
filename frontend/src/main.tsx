@@ -13,7 +13,16 @@ import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL || ""
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (!envUrl) return ""
+  if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
+    return envUrl
+  }
+  return `https://${envUrl}`
+}
+
+OpenAPI.BASE = getApiBaseUrl()
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }
