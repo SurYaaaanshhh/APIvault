@@ -9,6 +9,7 @@ import { z } from "zod"
 
 import type { Body_login_login_access_token as AccessToken } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
+import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -65,6 +66,15 @@ function Login() {
   const onSubmit = (data: FormData) => {
     if (loginMutation.isPending) return
     loginMutation.mutate(data)
+  }
+
+  const handleDemoLogin = () => {
+    form.setValue("username", "demo@apivault.com")
+    form.setValue("password", "password123")
+    loginMutation.mutate({
+      username: "demo@apivault.com",
+      password: "password123",
+    })
   }
 
   return (
@@ -127,6 +137,16 @@ function Login() {
             <LoadingButton type="submit" loading={loginMutation.isPending}>
               Log In
             </LoadingButton>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-1 border-primary/50 text-primary hover:bg-primary/10"
+              onClick={handleDemoLogin}
+              disabled={loginMutation.isPending}
+            >
+              ⚡ Quick Demo Login (1-Click)
+            </Button>
           </div>
 
           <div className="text-center text-sm">
