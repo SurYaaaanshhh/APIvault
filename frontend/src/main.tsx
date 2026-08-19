@@ -33,7 +33,7 @@ const getApiBaseUrl = () => {
     hostname.endsWith("loca.lt") ||
     hostname.endsWith("lhr.life")
   ) {
-    return "https://tin-organic-amend-accounting.trycloudflare.com"
+    return "https://retention-stopping-programmers-new.trycloudflare.com"
   }
 
   return "http://localhost:8000"
