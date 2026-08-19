@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "bunx tsc -p tsconfig.build.json && vite build",
-    "lint": "bunx biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
+    "build": "npx tsc -p tsconfig.build.json && vite build",
+    "lint": "npx @biomejs/biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "preview": "vite preview",
     "generate-client": "openapi-ts",
-    "test": "bunx playwright test",
-    "test:ui": "bunx playwright test --ui"
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
