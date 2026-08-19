@@ -54,7 +54,6 @@ services:
   # Frontend Static Site
   - type: web
     name: apivault-frontend
-    plan: free
     runtime: static
     buildCommand: "cd frontend && bun install && bun run build"
     staticPublishPath: "./frontend/dist"
