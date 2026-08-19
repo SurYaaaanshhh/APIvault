@@ -4,6 +4,7 @@ import {
   Link as RouterLink,
   redirect,
 } from "@tanstack/react-router"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -53,6 +54,7 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const { loginMutation } = useAuth()
+  const [debugError, setDebugError] = useState<string | null>(null)
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -64,17 +66,32 @@ function Login() {
   })
 
   const onSubmit = (data: FormData) => {
+    setDebugError(null)
     if (loginMutation.isPending) return
-    loginMutation.mutate(data)
+    loginMutation.mutate(data, {
+      onError: (err: any) => {
+        const msg = err?.body?.detail || err?.message || JSON.stringify(err)
+        setDebugError(typeof msg === "string" ? msg : JSON.stringify(msg))
+      },
+    })
   }
 
   const handleDemoLogin = () => {
+    setDebugError(null)
     form.setValue("username", "demo@apivault.com")
     form.setValue("password", "password123")
-    loginMutation.mutate({
-      username: "demo@apivault.com",
-      password: "password123",
-    })
+    loginMutation.mutate(
+      {
+        username: "demo@apivault.com",
+        password: "password123",
+      },
+      {
+        onError: (err: any) => {
+          const msg = err?.body?.detail || err?.message || JSON.stringify(err)
+          setDebugError(typeof msg === "string" ? msg : JSON.stringify(msg))
+        },
+      },
+    )
   }
 
   return (
@@ -89,6 +106,12 @@ function Login() {
           </div>
 
           <div className="grid gap-4">
+            {debugError && (
+              <div className="p-3 text-xs text-red-400 bg-red-950/40 border border-red-500/30 rounded-md font-mono break-all text-center">
+                <strong>Diagnostic Error:</strong> {debugError}
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="username"
