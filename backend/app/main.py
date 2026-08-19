@@ -52,8 +52,18 @@ app = FastAPI(
 )
 
 # Set all CORS enabled origins
+cors_origins = [
+    "https://apivault-frontend.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://localhost",
+]
+if settings.all_cors_origins:
+    cors_origins.extend([str(o).rstrip("/") for o in settings.all_cors_origins if o != "*"])
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=list(set(cors_origins)),
     allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
