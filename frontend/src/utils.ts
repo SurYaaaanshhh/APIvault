@@ -3,6 +3,9 @@ import type { ApiError } from "./client"
 
 function extractErrorMessage(err: ApiError): string {
   if (err instanceof AxiosError) {
+    if (err.message === "Network Error") {
+      return "Network Error: Server is waking up (Render free tier cold start). Please wait ~30 seconds and try again."
+    }
     return err.message
   }
 

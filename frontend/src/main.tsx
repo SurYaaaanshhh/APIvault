@@ -15,7 +15,12 @@ import { routeTree } from "./routeTree.gen"
 
 const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL
-  if (!envUrl) return ""
+  if (!envUrl) {
+    if (import.meta.env.PROD) {
+      return "https://apivault-backend.onrender.com"
+    }
+    return ""
+  }
   if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
     return envUrl
   }
