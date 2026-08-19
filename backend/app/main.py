@@ -2,12 +2,15 @@ import logging
 import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from sqlmodel import Session, SQLModel
-from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app.api.main import api_router
 from app.core.config import settings
@@ -51,23 +54,28 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Set all CORS enabled origins
-cors_origins = [
-    "https://apivault-frontend.onrender.com",
-    "http://localhost:5173",
-    "http://localhost:8000",
-    "http://localhost",
-]
-if settings.all_cors_origins:
-    cors_origins.extend([str(o).rstrip("/") for o in settings.all_cors_origins if o != "*"])
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
+        origin = request.headers.get("origin")
+        if request.method == "OPTIONS":
+            preflight_res = Response(status_code=200)
+            if origin:
+                preflight_res.headers["Access-Control-Allow-Origin"] = origin
+                preflight_res.headers["Access-Control-Allow-Credentials"] = "true"
+            else:
+                preflight_res.headers["Access-Control-Allow-Origin"] = "*"
+            preflight_res.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            preflight_res.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+            preflight_res.headers["Access-Control-Max-Age"] = "600"
+            return preflight_res
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=list(set(cors_origins)),
-    allow_origin_regex=".*",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+        response: Response = await call_next(request)
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+
+app.add_middleware(CustomCORSMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
