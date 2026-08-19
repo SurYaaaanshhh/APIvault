@@ -1,3 +1,4 @@
+from sqlalchemy.engine import Engine
 from sqlmodel import Session, create_engine, select
 
 from app import crud
@@ -5,7 +6,7 @@ from app.core.config import settings
 from app.models import User, UserCreate
 
 
-def _create_db_engine():
+def _create_db_engine() -> Engine:
     db_url = str(settings.SQLALCHEMY_DATABASE_URI)
     try:
         eng = create_engine(db_url)

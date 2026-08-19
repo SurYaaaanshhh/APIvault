@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     for attempt in range(1, 6):
         try:
             SQLModel.metadata.create_all(engine)

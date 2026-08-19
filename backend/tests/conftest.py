@@ -3,6 +3,7 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine, delete
 
 import app.api.deps as deps_module
@@ -17,7 +18,7 @@ from tests.utils.utils import get_superuser_token_headers
 TEST_DB_FILE = "./test_temp.db"
 
 
-def _get_test_engine():
+def _get_test_engine() -> Engine:
     try:
         conn = db_module.engine.connect()
         conn.close()
@@ -33,7 +34,7 @@ def _get_test_engine():
             connect_args={"check_same_thread": False},
         )
         db_module.engine = test_engine
-        deps_module.engine = test_engine
+        deps_module.engine = test_engine  # type: ignore[attr-defined]
         return test_engine
 
 
@@ -60,7 +61,7 @@ def db() -> Generator[Session]:
 
 @pytest.fixture(scope="module")
 def client(db: Session) -> Generator[TestClient]:
-    def _override_get_db():
+    def _override_get_db() -> Generator[Session]:
         yield db
 
     app.dependency_overrides[deps_module.get_db] = _override_get_db
