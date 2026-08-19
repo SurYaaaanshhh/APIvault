@@ -44,6 +44,11 @@ OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }
 
+// Background warmup ping for Render free tier cold-start
+if (typeof window !== "undefined") {
+  fetch(`${getApiBaseUrl()}/api/v1/utils/health-check/`).catch(() => {})
+}
+
 const handleApiError = (error: Error) => {
   if (error instanceof ApiError && [401, 403, 404].includes(error.status)) {
     localStorage.removeItem("access_token")
@@ -56,6 +61,16 @@ const handleApiError = (error: Error) => {
   }
 }
 const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 4,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+    },
+    mutations: {
+      retry: 3,
+      retryDelay: 3000,
+    },
+  },
   queryCache: new QueryCache({
     onError: handleApiError,
   }),
