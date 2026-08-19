@@ -56,7 +56,7 @@ services:
         fromService:
           type: web
           name: apivault-backend
-          property: url
+          property: host
     routes:
       - type: rewrite
         source: /*
@@ -66,5 +66,5 @@ databases:
   # PostgreSQL Database
   - name: apivault-db
     databaseName: app
-    user: postgres
+    user: apivault_user
     plan: free
