@@ -23,16 +23,11 @@ const getApiBaseUrl = () => {
   }
 
   const hostname = typeof window !== "undefined" ? window.location.hostname : ""
-  if (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.endsWith(".lhr.life") ||
-    hostname.endsWith(".loca.lt")
-  ) {
-    return "http://localhost:8000"
+  if (hostname.includes("onrender.com") || hostname.includes("vercel.app")) {
+    return ""
   }
 
-  return ""
+  return "http://localhost:8000"
 }
 
 OpenAPI.BASE = getApiBaseUrl()
