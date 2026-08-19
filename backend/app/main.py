@@ -54,28 +54,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-class CustomCORSMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Any) -> Response:
-        origin = request.headers.get("origin")
-        if request.method == "OPTIONS":
-            preflight_res = Response(status_code=200)
-            if origin:
-                preflight_res.headers["Access-Control-Allow-Origin"] = origin
-                preflight_res.headers["Access-Control-Allow-Credentials"] = "true"
-            else:
-                preflight_res.headers["Access-Control-Allow-Origin"] = "*"
-            preflight_res.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-            preflight_res.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-            preflight_res.headers["Access-Control-Max-Age"] = "600"
-            return preflight_res
+from fastapi.middleware.cors import CORSMiddleware
 
-        response: Response = await call_next(request)
-        if origin:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-        return response
-
-
-app.add_middleware(CustomCORSMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.all_cors_origins,
+    allow_origin_regex=r"https?://.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
