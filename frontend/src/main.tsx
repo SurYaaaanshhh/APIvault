@@ -16,15 +16,16 @@ import { routeTree } from "./routeTree.gen"
 const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL
   if (envUrl && envUrl.trim() !== "") {
-    if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
-      return envUrl
+    let clean = envUrl.trim()
+    if (!clean.startsWith("http://") && !clean.startsWith("https://")) {
+      clean = `https://${clean}`
     }
-    return `https://${envUrl}`
+    return clean.endsWith("/") ? clean.slice(0, -1) : clean
   }
 
   const hostname = typeof window !== "undefined" ? window.location.hostname : ""
-  if (hostname.includes("onrender.com") || hostname.includes("vercel.app")) {
-    return ""
+  if (hostname.includes("onrender.com")) {
+    return "https://apivault-backend.onrender.com"
   }
 
   if (
@@ -46,7 +47,12 @@ OpenAPI.TOKEN = async () => {
 const handleApiError = (error: Error) => {
   if (error instanceof ApiError && [401, 403, 404].includes(error.status)) {
     localStorage.removeItem("access_token")
-    window.location.href = "/login"
+    if (
+      window.location.pathname !== "/login" &&
+      window.location.pathname !== "/signup"
+    ) {
+      window.location.href = "/login"
+    }
   }
 }
 const queryClient = new QueryClient({

@@ -12,7 +12,10 @@ import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
-  return Boolean(localStorage.getItem("access_token"))
+  const token = localStorage.getItem("access_token")
+  return Boolean(
+    token && token !== "null" && token !== "undefined" && token.trim() !== "",
+  )
 }
 
 const useAuth = () => {
