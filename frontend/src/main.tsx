@@ -14,20 +14,6 @@ import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
 const getApiBaseUrl = () => {
-  const hostname = typeof window !== "undefined" ? window.location.hostname : ""
-
-  if (hostname.includes("onrender.com")) {
-    return "https://apivault-backend.onrender.com"
-  }
-
-  if (
-    hostname.endsWith("trycloudflare.com") ||
-    hostname.endsWith("loca.lt") ||
-    hostname.endsWith("lhr.life")
-  ) {
-    return "https://retention-stopping-programmers-new.trycloudflare.com"
-  }
-
   const envUrl = import.meta.env.VITE_API_URL
   if (
     envUrl &&
@@ -40,6 +26,23 @@ const getApiBaseUrl = () => {
       clean = `https://${clean}`
     }
     return clean.endsWith("/") ? clean.slice(0, -1) : clean
+  }
+
+  const hostname = typeof window !== "undefined" ? window.location.hostname : ""
+
+  if (hostname.includes("onrender.com")) {
+    if (hostname.includes("-frontend")) {
+      return `https://${hostname.replace("-frontend", "-backend")}`
+    }
+    return "https://apivault-backend.onrender.com"
+  }
+
+  if (
+    hostname.endsWith("trycloudflare.com") ||
+    hostname.endsWith("loca.lt") ||
+    hostname.endsWith("lhr.life")
+  ) {
+    return "https://retention-stopping-programmers-new.trycloudflare.com"
   }
 
   return "http://localhost:8000"
